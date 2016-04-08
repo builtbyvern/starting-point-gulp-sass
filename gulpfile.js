@@ -5,9 +5,9 @@ var gulp  = require('gulp'),
     sass          = require('gulp-sass'),
     concat        = require('gulp-concat'),
     sourcemaps    = require('gulp-sourcemaps'),
-    livereload    = require('gulp-livereload'),
     autoprefixer  = require('gulp-autoprefixer'),
     uglify        = require('gulp-uglify'),
+    browserSync   = require('browser-sync').create(),
 
     input  = {
       'sass': 'source/scss/**/*.scss',
@@ -19,6 +19,23 @@ var gulp  = require('gulp'),
       'stylesheets': 'public/assets/stylesheets',
       'javascript': 'public/assets/javascript'
     };
+
+// Static server
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+});
+
+// or...
+
+// gulp.task('browser-sync', function() {
+//     browserSync.init({
+//         proxy: "yourlocal.dev"
+//     });
+// });
 
 /* run the watch task when gulp is called without arguments */
 gulp.task('default', ['watch']);
@@ -41,7 +58,7 @@ gulp.task('build-css', function() {
     }))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(output.stylesheets))
-    .pipe(livereload());
+    .pipe(browserSync.stream());
 });
 
 /* concat javascript files, minify if --type production */
@@ -52,12 +69,12 @@ gulp.task('build-js', function() {
     //only uglify if gulp is ran with '--type production'
     .pipe(gutil.env.type === 'production' ? uglify() : gutil.noop()) 
     .pipe(sourcemaps.write())
+    .pipe(browserSync.stream());
     .pipe(gulp.dest(output.javascript));
 });
 
 /* Watch these files for changes and run the task on update */
 gulp.task('watch', function() {
-  livereload.listen();
   gulp.watch(input.javascript, ['jshint', 'build-js']);
   gulp.watch(input.sass, ['build-css']);
 });
